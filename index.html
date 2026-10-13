@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification - Bami Makeup Zone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Brqie';
+            src: url('fonts/Brqie_Regular_1592f9c7b4.ttf') format('truetype');
+        }
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #FFD700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        .sub-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: #FFD700;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            background-color: #1a1a1a;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            box-sizing: border-box;
+        }
+        .search-box h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            color: #ccc;
+            margin: 0 0 20px 0;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            background-color: #000;
+            color: #FFD700;
+            text-align: center;
+            letter-spacing: 2px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input::placeholder {
+            color: #555;
+            letter-spacing: 1px;
+        }
+        button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #d4af37;
+        }
+        #result {
+            display: none;
+            margin-top: 25px;
+        }
+        .result-card {
+            background-color: #1a1a1a;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            box-sizing: border-box;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .verified-badge {
+            color: #4CAF50;
+            font-size: 16px;
+            font-weight: 600;
+            border: 1px solid #4CAF50;
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        .result-card h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        .student-name {
+            font-family: 'Brqie', sans-serif;
+            font-size: 38px;
+            color: #d4af37;
+            margin: 25px 0;
+            word-wrap: break-word;
+        }
+        .details {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+            font-weight: 300;
+        }
+        .footer {
+            font-family: 'Montserrat', sans-serif;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            line-height: 1.8;
+        }
+        .error-msg {
+            color: #ff5555;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">BAMI</div>
+    <div class="sub-logo">MAKEUP ZONE</div>
+    <div class="search-box" id="searchBox">
+        <h2>Enter the Certificate Number below</h2>
+        <input type="text" id="certInput" placeholder="e.g. BMZ-0001" autocomplete="off">
+        <button onclick="verifyCertificate()">VERIFY CERTIFICATE</button>
+        <div id="errorMsg"></div>
+    </div>
+    <div id="result"></div>
+    <script>
+        let studentsData = [];
+        fetch('students.json')
+            .then(response => response.json())
+            .then(data => { studentsData = data; })
+            .catch(err => console.error('Error loading students:', err));
+        function verifyCertificate() {
+            const input = document.getElementById('certInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('result');
+            const searchBox = document.getElementById('searchBox');
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.innerHTML = '';
+            if (!input) {
+                errorMsg.innerHTML = 'Please enter a certificate number.';
+                return;
+            }
+            const student = studentsData.find(s => s.certNo.toUpperCase() === input);
+            if (student) {
+                searchBox.style.display = 'none';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <div class="verified-badge">✓ VERIFIED CERTIFICATE</div>
+                        <h1>This certifies that</h1>
+                        <div class="student-name">${student.name}</div>
+                        <div class="details">
+                            has successfully completed the professional training program in<br>
+                            <strong>${student.course}</strong>
+                        </div>
+                        <div class="footer">
+                            Certificate No: ${student.certNo}<br>
+                            Date of Completion: ${student.date}<br>
+                            Issued by Bami Makeup Zone
+                        </div>
+                        <br>
+                        <button onclick="resetSearch()" style="background:#333;color:#FFD700;border:1px solid #FFD700;">VERIFY ANOTHER</button>
+                    </div>
+                `;
+            } else {
+                errorMsg.innerHTML = '❌ Certificate not found. Please check the number and try again.';
+            }
+        }
+        function resetSearch() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('searchBox').style.display = 'block';
+            document.getElementById('certInput').value = '';
+            document.getElementById('errorMsg').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
